@@ -1,0 +1,13 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-dark: #0c0c0e;
+  --color-card: #16161a;
+  --color-accent: #2a52cc;
+  --color-nav: rgba(10, 10, 14, 0.95);
+}
+
+body {
+  background-color: #0c0c0e;
+  color: #ffffff;
+}
