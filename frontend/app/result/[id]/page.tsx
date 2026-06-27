@@ -1,12 +1,14 @@
 import { cookies } from 'next/headers';
 import { notFound } from 'next/navigation';
 import { getTranslations, type Locale } from '@/lib/i18n';
-import { getItinerary } from '@/lib/api';
 import ItineraryResult from '@/components/ItineraryResult';
+import type { Itinerary } from '@/types';
 
 interface PageProps {
   params: Promise<{ id: string }>;
 }
+
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:3001';
 
 export default async function ResultPage({ params }: PageProps) {
   const { id } = await params;
@@ -17,9 +19,18 @@ export default async function ResultPage({ params }: PageProps) {
   const itineraryId = parseInt(id, 10);
   if (isNaN(itineraryId)) notFound();
 
-  let itinerary;
+  // Server-side fetch must forward the browser's signed session cookie
+  // so Railway can verify ownership (owner_session_id).
+  const cookieHeader = cookieStore.getAll().map(c => `${c.name}=${c.value}`).join('; ');
+
+  let itinerary: Itinerary;
   try {
-    itinerary = await getItinerary(itineraryId);
+    const res = await fetch(`${API_BASE}/itineraries/${itineraryId}`, {
+      headers: { Cookie: cookieHeader },
+      cache: 'no-store',
+    });
+    if (!res.ok) notFound();
+    itinerary = await res.json();
   } catch {
     notFound();
   }
