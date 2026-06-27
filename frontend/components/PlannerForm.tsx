@@ -95,6 +95,7 @@ export default function PlannerForm({ t }: Props) {
 
     try {
       const itinerary = await createItinerary(input);
+      sessionStorage.setItem(`itinerary_${itinerary.id}`, JSON.stringify(itinerary));
       router.push(`/result/${itinerary.id}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : t.errorOccurred);

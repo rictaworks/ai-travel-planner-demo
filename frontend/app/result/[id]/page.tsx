@@ -1,38 +1,37 @@
-import { cookies } from 'next/headers';
-import { notFound } from 'next/navigation';
+'use client';
+
+import { useEffect, useState } from 'react';
+import { useParams, useRouter } from 'next/navigation';
 import { getTranslations, type Locale } from '@/lib/i18n';
+import type { Translations } from '@/lib/i18n/ja';
 import ItineraryResult from '@/components/ItineraryResult';
 import type { Itinerary } from '@/types';
 
-interface PageProps {
-  params: Promise<{ id: string }>;
-}
+export default function ResultPage() {
+  const params = useParams<{ id: string }>();
+  const router = useRouter();
+  const [itinerary, setItinerary] = useState<Itinerary | null>(null);
+  const [t, setT] = useState<Translations | null>(null);
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:3001';
+  useEffect(() => {
+    const match = document.cookie.match(/(?:^|;\s*)locale=([^;]+)/);
+    const locale = (match?.[1] as Locale) ?? 'ja';
+    setT(getTranslations(locale));
 
-export default async function ResultPage({ params }: PageProps) {
-  const { id } = await params;
-  const cookieStore = await cookies();
-  const locale = (cookieStore.get('locale')?.value ?? 'ja') as Locale;
-  const t = getTranslations(locale);
+    const raw = sessionStorage.getItem(`itinerary_${params.id}`);
+    if (raw) {
+      setItinerary(JSON.parse(raw));
+    } else {
+      router.replace('/');
+    }
+  }, [params.id, router]);
 
-  const itineraryId = parseInt(id, 10);
-  if (isNaN(itineraryId)) notFound();
-
-  // Server-side fetch must forward the browser's signed session cookie
-  // so Railway can verify ownership (owner_session_id).
-  const cookieHeader = cookieStore.getAll().map(c => `${c.name}=${c.value}`).join('; ');
-
-  let itinerary: Itinerary;
-  try {
-    const res = await fetch(`${API_BASE}/itineraries/${itineraryId}`, {
-      headers: { Cookie: cookieHeader },
-      cache: 'no-store',
-    });
-    if (!res.ok) notFound();
-    itinerary = await res.json();
-  } catch {
-    notFound();
+  if (!itinerary || !t) {
+    return (
+      <div className="flex items-center justify-center min-h-[50vh]">
+        <div className="text-gray-400">読み込み中...</div>
+      </div>
+    );
   }
 
   return (
