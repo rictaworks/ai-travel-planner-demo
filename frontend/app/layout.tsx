@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
+import Link from 'next/link';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 import { getTranslations, type Locale } from '@/lib/i18n';
 import { cookies } from 'next/headers';
@@ -33,6 +34,13 @@ export default async function RootLayout({
         <main className="max-w-2xl mx-auto px-4 py-8">
           {children}
         </main>
+        <footer className="border-t border-gray-800 mt-4">
+          <div className="max-w-2xl mx-auto px-4 py-4 text-center">
+            <Link href="/legal" className="text-xs text-gray-600 hover:text-gray-400 transition-colors">
+              利用規約・免責事項・連絡先
+            </Link>
+          </div>
+        </footer>
       </body>
     </html>
   );
